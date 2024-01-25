@@ -10,7 +10,7 @@ export type RecordingM = {
 
 }
 export enum RecordingItemStatus {
-    uploading, processing, done, error
+    uploading="uploading", processing="processing", done="done", error="error"
 }
 export type Recording ={
 

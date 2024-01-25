@@ -1,7 +1,12 @@
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import EventEmitter from "events";
+import { io, Socket } from "socket.io-client";
 import { Recording, RecordingItemStatus, RecordingM, RecordingServerProgressUpdate } from "../Types/Types";
 import { delay } from "../Utils";
 import { IApiService } from "./IApiService";
+/**
+ * a mocked api service
+ */
 
 export class MockApiService implements IApiService {
 
@@ -49,6 +54,12 @@ export class MockApiService implements IApiService {
             uploadProgress: 0.9
         }
     ];
+    public async init(): Promise<void> {
+        return;// this impl doesn't need initialization
+    }
+    public async close(): Promise<void> {
+        return;
+    }
 
     public async getAllRecordings(): Promise<Recording[]> {
         console.log("getAllRecordings")
@@ -109,11 +120,120 @@ export class MockApiService implements IApiService {
 
 
 }
+/**
+ *  similar to MockApiService but connects to a real express server 
+ */
+ export class ExpressApiService implements IApiService {
+    private static Instance?: ExpressApiService
 
-class ExpressApiService {
+    public static getInstance() {
+        if (ExpressApiService.Instance === undefined) {
+            //ExpressApiService.Instance = new ExpressApiService("http://localhost:3001");
+            ExpressApiService.Instance = new ExpressApiService("");
+        }
+        return ExpressApiService.Instance;
+    }
+    private baseUrl: string;
+    private socket?:Socket
+  
+    constructor(baseUrl: string) {
+      this.baseUrl = baseUrl;
+    }
+  
+    public  init() {
+        console.log("init api express")
+        return new  Promise<void>((res,rej)=>{
+            this.socket = io('http://localhost:3001');
+            this.socket = io();
+            this.socket.on("connect",()=>{
+                console.log("socket connect, adding fake delay")
+                setTimeout(() => {
+                    res();
+                }, 2000);
+                
+            })
+            this.socket.on("recordingStatusUpdate",(recordingId,update)=>{
+                console.log(`recieved update ${recordingId} ${update}`)
+                if(recordingId in this.progressCallbacks ){
+                    console.log(`recordingId in this.progressCallbacks`)
+                    let item = this.progressCallbacks[recordingId];
+                    item.cb(item.recording,update)
+                    //normally we would remove this when detecting the last update, but now there's only one update (as we don't support processing progress)
+                    delete this.progressCallbacks[recordingId]
+                }
+                else{
+                    console.log(`recordingId not in this.progressCallbacks`)
+                }
+            })
+            this.socket.on("connect_error",()=>{
+                console.log("socket connect_error")
+                rej();
+            })
+            this.socket.on("hello",n=>{
+                console.log(n)
+            })
+            
+        })
+    }
+    public async close(): Promise<void> {
+        if(this.socket){
+            this.socket.close()
+        }
+    }
+    public async getAllRecordings(): Promise<Recording[]> {
+      try {
+        const response = await axios.get<Recording[]>(`${this.baseUrl}/recordings`);
+        return response.data;
+      } catch (error) {
+        // Handle error, e.g., log it or throw a custom exception
+        console.error('Error fetching recordings:', error);
+        throw error;
+      }
+    }
+  
+    /**
+     * by recording id
+     */
+    private progressCallbacks:Record<string,{recording:Recording,cb:(recording: Recording, progress: RecordingServerProgressUpdate) => void}> = {} 
+    public submitRecording(
+      recording: Recording,
+      recordingData: RecordingM,
+      progressCallback: (recording: Recording, progress: RecordingServerProgressUpdate) => void
+    ): void {
+      const uploadUrl = `${this.baseUrl}/upload`; 
+  
 
-}
-
+      const formData = new FormData();
+      formData.append('recording', JSON.stringify(recording));
+      formData.append('data', recordingData.data, 'recording.raw'); 
+  
+      const config: AxiosRequestConfig = {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const uploadProgress = (progressEvent.loaded / progressEvent.total) ;
+            progressCallback(recording, { processingProgress: 0, uploadingProgress: uploadProgress, status: 'uploading' });
+          }
+        },
+        
+      };
+  
+      axios.post(uploadUrl, formData, config)
+        .then((response: AxiosResponse) => {
+            console.log(`response: ${response}`)
+            if(response.status==200){
+                this.progressCallbacks[recording.id]={cb:progressCallback,recording:recording} ;
+                recording.status = RecordingItemStatus.processing;
+                progressCallback(recording, { processingProgress: 0, uploadingProgress: 1, status: 'processing' });
+            }
+          
+        })
+        .catch((error) => {
+          console.error('Error uploading recording:', error);
+          throw error;
+        });
+    }
+  }
+  
 
 
 
