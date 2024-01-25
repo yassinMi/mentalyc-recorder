@@ -1,5 +1,15 @@
-export function Spinner(){
-    return <div className="spinner-border" role="status">
-    {/*<span className="sr-only">Loading...</span>*/}
-  </div>
+type Spinner_Props = {
+  label?: string
+}
+export function Spinner({ label }: Spinner_Props) {
+  return (
+    <div className="spinner-and-label">
+      {label&&(<span>{label}</span>)}
+      <div className="spinner-border" role="status">
+
+      </div>
+    </div>
+
+  )
+
 }

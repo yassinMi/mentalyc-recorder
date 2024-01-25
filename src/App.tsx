@@ -1,14 +1,14 @@
 import logo from './logo.svg';
 import './App.css';
 import { RecordingCard } from './RecordingCard';
-import { RecordingItemStatus } from './RecordingCardStatusTag';
-import { getAllRecordings, Recording, RecordingServerProgressUpdate, submitRecording } from './ApiService';
 import { useContext, useEffect, useState } from 'react';
 import { Spinner } from './Spinner';
 import { RecordingRoom } from './RecordingRoom';
 import { RecordingRoomCard } from './RecordingRoomCard';
-import { RecordingContext, RecordingM, RecordingRomStatus, RecordingType } from './Contexts';
+import { RecordingContext, RecordingRomStatus } from './Contexts';
 import { RecordingContextProvider } from './RecordingContextProvider';
+import { Recording, RecordingItemStatus, RecordingM, RecordingServerProgressUpdate } from './Types/Types';
+import { MockApiService } from './Services/ApiService';
 
 function App() {
   const [recordingsList, setrecordingsList] = useState([] as Recording[]);
@@ -16,6 +16,8 @@ function App() {
   const [failedLoadingRecordsList, setFailedLoadingRecordsList] = useState("");
   const [isRecordingRoomOpen, setIsRecordingRoomOpen] = useState(false);
   const [isRecordingRoomMaximized, setIsRecordingRoomMaximized] = useState(true);
+
+  
 
   const { recordingTitle, setRecordingTitle, recordingDuration, setRecordingDuration, recordingType, setRecordingType, recordingStatus, setRecordingStatus, recordingHelper, recording, setRecording,mediaStream,isChangingRecordingType,initErrorString,isDirty } = useContext(RecordingContext);
 
@@ -25,8 +27,8 @@ function App() {
       const progressCb = (r:Recording, prog:RecordingServerProgressUpdate)=>{
         console.log(`progressCb ${r.id} ${r.title} ${prog.uploadingProgress}`)
         
-        setrecordingsList(()=>{
-          const updatedList = [...recordingsList];
+        setrecordingsList((prev_updatedList)=>{
+          const updatedList = [...prev_updatedList];
 
           let ix = updatedList.findIndex(i=>i.id===r.id)
           let old = updatedList[ix]
@@ -38,31 +40,49 @@ function App() {
           
         })
       }
-       submitRecording(recording,recordingData,progressCb)
+      MockApiService.getInstance().submitRecording(recording,recordingData,progressCb)
 
-       //setrecordingsList(()=>{
-       //  return [ recording,...recordingsList]
-       //})
+       setrecordingsList(()=>{
+         return [ recording,...recordingsList]
+       })
 
-       setIsRecordingRoomOpen(false)
+       setTimeout(()=>onCloseRecordingRoom(),0)
+       
   }
  
 
+  useEffect(()=>{
+
+    function hndlbeforeunload(ev:BeforeUnloadEvent){
+      if(isDirty) ev.returnValue = "you have unsaved recording"
+
+    }
+    window.addEventListener("beforeunload",hndlbeforeunload)
+    return ()=>{window.removeEventListener("beforeunload",hndlbeforeunload)}
+  },[isDirty])
+
   //console.log("App render")
   useEffect(() => {
-    if (recordingsList.length > 0) return;
-    if (isLoadingRecordsList) return;
-    setrecordingsList([])
-    setIsLoadingRecordsList(true);
-    getAllRecordings().then(r => {
-      setrecordingsList(r);
-      setIsLoadingRecordsList(false);
-    })
-      .catch(err => {
-        setIsLoadingRecordsList(false);
-        setFailedLoadingRecordsList("cannot fetch recordings list");
-      })
-  }, [recordingsList, isLoadingRecordsList, failedLoadingRecordsList])
+    const fetchRecordings = async()=>{
+      if(isLoadingRecordsList) return
+      setIsLoadingRecordsList(true)
+      try{
+        var recordings = await MockApiService.getInstance().getAllRecordings();
+        setrecordingsList(recordings)
+      }
+      catch{
+        setFailedLoadingRecordsList("failed to loead eacordings")
+      }
+      finally{
+        setIsLoadingRecordsList(false)
+      }
+
+    }
+    fetchRecordings();
+     
+  },[])
+
+
   function onMinimizeRecordingRoom() {
     setIsRecordingRoomMaximized(false)
   }
@@ -86,7 +106,7 @@ function App() {
 
 
        
-        <div className="horizontal-flex-center-spacebetween">
+        <div style={{marginBottom:"16px"}} className="horizontal-flex-center-spacebetween">
           <div className="section-header h1">Recordings</div>
 
           <button disabled={isRecordingRoomOpen} className="primary-button border-rd-12" onClick={hndlNewRecordingClick}>
@@ -98,20 +118,14 @@ function App() {
 
           </button>
         </div>
-        <div className="section-header">Today (5)</div>
         <div className="recordings-wrapper">
           {isLoadingRecordsList && <Spinner />}
           {failedLoadingRecordsList != "" && <div className='error'>{failedLoadingRecordsList}</div>}
-          {/*<RecordingCard title="Session #8" status={RecordingItemStatus.uploading} duration="56:13" timestamp={new Date(Date.UTC(2024, 1, 21, 8, 6, 5))} uploadProgress={0.5}></RecordingCard>
-        <RecordingCard title="Session #7" status={RecordingItemStatus.processing} duration="55:13" timestamp={new Date(Date.UTC(2023, 12, 28, 8, 56, 5))}   ></RecordingCard>
-        <RecordingCard title="Session #6" status={RecordingItemStatus.done} duration="54:13" timestamp={new Date(Date.UTC(2024, 2, 12, 8, 41, 5))}></RecordingCard>
-        <RecordingCard title="Session #5" status={RecordingItemStatus.done} duration="5:13" timestamp={new Date(Date.UTC(2024, 1, 12, 7, 56, 5))} ></RecordingCard>
-        */}
+          
           {
-            (recordingsList).map(r => (<RecordingCard  key={r.id} id={r.id} title={r.title} status={r.status} duration={r.duration} timestamp={r.timestamp} uploadProgress={r.status == RecordingItemStatus.uploading ? r.uploadProgress : undefined}></RecordingCard>))
+            (recordingsList).map(r => (<RecordingCard  key={r.id} id={r.id} title={r.title} status={r.status} duration={r.duration} timestamp={new Date(r.timestamp) } uploadProgress={r.status == RecordingItemStatus.uploading ? r.uploadProgress : undefined}></RecordingCard>))
           }
         </div>
-        <div className="section-header">Last Week (2)</div>
 
         {isRecordingRoomOpen && isRecordingRoomMaximized && (
           <RecordingRoom CloseCb={onCloseRecordingRoom} minimizeCb={onMinimizeRecordingRoom} onRecordingSubmitRequested={onRecordingSubmitRequested} />

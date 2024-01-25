@@ -1,8 +1,9 @@
 import React, { createRef, useContext, useEffect, useMemo, useRef, useState } from "react"
-import { Recording, submitRecording } from "./ApiService"
-import { RecordingContext, RecordingM, RecordingRomStatus, RecordingType } from "./Contexts"
-import { RecordingCardStatusTag, RecordingItemStatus } from "./RecordingCardStatusTag"
+import { RecordingContext, RecordingRomStatus } from "./Contexts"
+import { RecordingCardStatusTag } from "./RecordingCardStatusTag"
 import { RecordingHelper } from "./Services/RecordingService"
+import { Spinner } from "./Spinner"
+import { Recording, RecordingItemStatus, RecordingM, RecordingType } from "./Types/Types"
 import { DurationToUserFreindlyString } from "./Utils"
 
 
@@ -192,7 +193,7 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
             duration:DurationToUserFreindlyString(recordingDuration) !,
             id:`${Math.floor(100000000+ (Math.random()*10000000))}`,
             status:RecordingItemStatus.uploading,
-            timestamp:new Date(Date.now()),
+            timestamp:Date.now(),
             title:recordingTitle,
         },recording)
         clearRecordingState();
@@ -271,6 +272,11 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
            return true;
        })
     }
+    function hndlEditingTitleInputKeyDown(ev: React.KeyboardEvent){
+        if(ev.key=="Enter"){
+            hndlSaveTitleClick()
+        }
+    }
 
     return (
         <div className="recording-room-wrapper">
@@ -281,7 +287,7 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
 
                         {isEditingTitle&&(
                             <>
-                                <input autoFocus type={"text"} value={currentEditingTitle}  onChange={hndlEditingTitleChanged}  ></input>
+                                <input onKeyDown={hndlEditingTitleInputKeyDown} autoFocus type={"text"} value={currentEditingTitle}  onChange={hndlEditingTitleChanged}  ></input>
                                 <button className="icon-action-button-lite" onClick={hndlSaveTitleClick} >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-check-lg" viewBox="0 0 16 16">
   <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
@@ -314,9 +320,9 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
                     </div>
 
                     {isDirty&&(
-                        <button className="icon-action-button" onClick={hndlMinimizeClick}>
-                        <svg xmlns="http://www.w3.org/2000/svg"  fill="currentColor" className="bi bi-chevron-compact-down" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M1.553 6.776a.5.5 0 0 1 .67-.223L8 9.44l5.776-2.888a.5.5 0 1 1 .448.894l-6 3a.5.5 0 0 1-.448 0l-6-3a.5.5 0 0 1-.223-.67"/>
+                        <button className="icon-action-button icon16" onClick={hndlMinimizeClick}>
+                        <svg xmlns="http://www.w3.org/2000/svg"  fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
 </svg>
                     </button>
                     )}
@@ -333,7 +339,8 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
                     <video className={`${isCameraOn?"active":""}`} ref={videoRef} id="video" playsInline autoPlay></video>
                     <div className="video-wrapper-overlay">
                         {(recordingStatus===RecordingRomStatus.init || isChangingRecordingType)&&(
-                            <span>Initializing...</span>
+                            <Spinner label="Initializing"></Spinner>
+                            
                         )}
                         {(recordingStatus===RecordingRomStatus.initFailed)&&(
                             <div className="error-panel-wrapper">

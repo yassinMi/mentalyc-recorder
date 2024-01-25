@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import { RecordingHelper } from "./Services/RecordingService";
+import { RecordingM, RecordingType } from "./Types/Types";
 
 
 export enum RecordingRomStatus {
@@ -18,15 +19,7 @@ export enum RecordingRomStatus {
     /**when obtaining media streams fails (e.g permission denied), user can retry */
     initFailed
 }
-export enum RecordingType {
-    audio,
-    audioAndVideo
-}
-export type RecordingM = {
-    data: Blob,
-    type: RecordingType
 
-}
 export type RecordingContextType = {
     recordingStatus:RecordingRomStatus,
     setRecordingStatus: React.Dispatch<React.SetStateAction<RecordingRomStatus>>

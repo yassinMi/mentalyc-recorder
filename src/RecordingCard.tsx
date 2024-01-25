@@ -1,11 +1,8 @@
 import { Component } from "react"
-import { Recording, RecordingServerProgressUpdate, RecordingsStateManager } from "./ApiService"
-//@ts-ignore
-import { ProgressBar } from "./ProgressBar.tsx"
-//@ts-ignore
-import { RecordingCardStatusTag, RecordingItemStatus } from "./RecordingCardStatusTag.tsx"
-//@ts-ignore
-import { DateToUserFreindlyString } from "./Utils.ts"
+import { ProgressBar } from "./ProgressBar"
+import { RecordingCardStatusTag } from "./RecordingCardStatusTag"
+import { RecordingItemStatus } from "./Types/Types"
+import { DateToUserFreindlyString } from "./Utils"
 
 type RecordingCard_props = {
     id:string,
@@ -53,7 +50,7 @@ export class RecordingCard extends Component<RecordingCard_props, RecordingCard_
                    
                 </div>
                 {this.props.status== RecordingItemStatus.uploading&&
-                 <ProgressBar ratio={this.props.uploadProgress}/>}
+                 <ProgressBar ratio={this.props.uploadProgress??0}/>}
                
 
 

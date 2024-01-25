@@ -1,7 +1,6 @@
 import { Component } from "react"
-export enum RecordingItemStatus {
-    uploading, processing, done, error
-}
+import { RecordingItemStatus } from "./Types/Types"
+
 type RecordingCardStatusTag_props = {
     status:RecordingItemStatus
 }
