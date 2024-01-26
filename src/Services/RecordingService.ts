@@ -105,12 +105,16 @@ export class RecordingHelper extends EventEmitter {
         };
         //@ts-ignore
         this.mediaRecorder.onpause = (ev) => {
+            console.log("onpause")
             this.isPaused = true;
             this.isPausing = false;
             this.startAndPauseTimestamps.push(Date.now())
         }
         this.mediaRecorder.onresume = (ev) => {
+            console.log("onresume")
             this.startAndPauseTimestamps.push(Date.now())
+            this.isPaused = false;
+            this.isPausing=false;
         }
         //@ts-ignore
         this.mediaRecorder.onstop = (ev) => {

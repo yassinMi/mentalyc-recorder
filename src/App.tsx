@@ -21,11 +21,13 @@ function App() {
 
   const [isInitializingApiService,setIsInitializingApiService] = useState(false)
   const [failedInitializingApiService,setFailedInitializingApiService] = useState("")
-  //const CurrentApiService = MockApiService.getInstance() as IApiService
-  const CurrentApiService = ExpressApiService.getInstance() as IApiService
+
+  //# use one of the api implementations:
+  //const CurrentApiService = MockApiService.getInstance() as IApiService //state saved in front end
+  const CurrentApiService = ExpressApiService.getInstance() as IApiService //recording sent to the server, which notitifies the front end using websockets (this requires the server app)
 
 
-  const { recordingTitle, setRecordingTitle, recordingDuration, setRecordingDuration, recordingType, setRecordingType, recordingStatus, setRecordingStatus, recordingHelper, recording, setRecording, mediaStream, isChangingRecordingType, initErrorString, isDirty } = useContext(RecordingContext);
+  const { setRecordingStatus, recordingHelper, isDirty } = useContext(RecordingContext);
 
   function onRecordingSubmitRequested(recording: Recording, recordingData: RecordingM) {
 
@@ -78,8 +80,8 @@ function App() {
         var recordings = await CurrentApiService.getAllRecordings();
         setrecordingsList(recordings)
       }
-      catch {
-        setFailedLoadingRecordsList("failed to loead eacordings")
+      catch (error:any){
+        setFailedLoadingRecordsList(error?.message|| "failed to load recordings")
       }
       finally {
         setIsLoadingRecordsList(false)
@@ -96,7 +98,7 @@ function App() {
         await CurrentApiService.init();
         setFailedInitializingApiService("")
       } catch (error:any) {
-        setFailedInitializingApiService(error?.message||"failed to conect to the server")
+        setFailedInitializingApiService(error?.message||"failed to connect to the server. (make sure the server app is running, or use ApiMock instead")
       }
       finally{
         setIsInitializingApiService(false)
@@ -141,7 +143,7 @@ function App() {
       <div style={{ marginBottom: "16px" }} className="horizontal-flex-center-spacebetween">
         <div className="section-header h1">Recordings</div>
 
-        <button disabled={isRecordingRoomOpen} className="primary-button border-rd-12" onClick={hndlNewRecordingClick}>
+        <button  disabled={isRecordingRoomOpen} className="primary-button border-rd-12" onClick={hndlNewRecordingClick}>
           <svg xmlns="http://www.w3.org/2000/svg" height={16} fill="currentColor" className="bi bi-mic-fill" viewBox="0 0 16 16">
             <path d="M5 3a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0z" />
             <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5" />
@@ -150,15 +152,21 @@ function App() {
 
         </button>
       </div>
-      <div className="recordings-wrapper">
-        {(isLoadingRecordsList||isInitializingApiService) && <Spinner />}
+      <div className='recordings-top-section'>
+      {(isLoadingRecordsList||isInitializingApiService) && <Spinner label={`${isInitializingApiService&&isLoadingRecordsList?"Connecting to the server, loading recordings":isLoadingRecordsList?"Loading recordings":"Connecting to the server"}`} />}
         {failedLoadingRecordsList != "" && <div className='error'>{failedLoadingRecordsList}</div>}
         {failedInitializingApiService != "" && <div className='error'>{failedInitializingApiService}</div>}
 
-        {
-          (recordingsList).map(r => (<RecordingCard key={r.id} id={r.id} title={r.title} status={r.status} duration={r.duration} timestamp={new Date(r.timestamp)} uploadProgress={r.status == RecordingItemStatus.uploading ? r.uploadProgress : undefined}></RecordingCard>))
-        }
       </div>
+      {!(isLoadingRecordsList||isInitializingApiService)&&(
+        <div className="recordings-wrapper">
+       
+       {
+         (recordingsList).map(r => (<RecordingCard key={r.id} id={r.id} type={r.type} title={r.title} status={r.status} duration={r.duration} timestamp={new Date(r.timestamp)} uploadProgress={r.status == RecordingItemStatus.uploading ? r.uploadProgress : undefined}></RecordingCard>))
+       }
+     </div>
+      )}
+      
 
       {isRecordingRoomOpen && isRecordingRoomMaximized && (
         <RecordingRoom CloseCb={onCloseRecordingRoom} minimizeCb={onMinimizeRecordingRoom} onRecordingSubmitRequested={onRecordingSubmitRequested} />
@@ -170,6 +178,9 @@ function App() {
       )}
 
 
+<div className='app-footer'>
+  <span>demo app by YassinMi</span>
+</div>
     </div>
   );
 }

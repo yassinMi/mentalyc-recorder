@@ -1,8 +1,8 @@
 
 
 export enum RecordingType {
-    audio,
-    audioAndVideo
+    audio="audio",
+    audioAndVideo="audioAndVideo"
 }
 export type RecordingM = {
     data: Blob,
@@ -19,7 +19,10 @@ export type Recording ={
     duration:string,
     timestamp:number,
     status:RecordingItemStatus,
-    uploadProgress?:number
+    uploadProgress?:number,
+    processingProgress?:number,
+    type: RecordingType
+
 
 }
 

@@ -19,7 +19,7 @@
   --bg :  hsl(208, 12%, 22%);
   --primary: hsl(332, 85%, 46%);
   --destructive-red-hue :0;
-  --destructive-red :hsl(0, 75%, 58%);
+  --destructive-red :hsl(0, 100%, 60%);
   --blue-tag:hsl(202, 32%, 43%);
   --blue-camera-toggle:hsl(204, 81%, 46%);
 
@@ -52,6 +52,10 @@ body{
  align-content: stretch;
  align-items: center;
  padding: 8px;
+
+}
+#root{
+  align-self: stretch;
 }
 #main{
   align-self: stretch;
@@ -59,8 +63,9 @@ body{
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  
-  
+  position: relative;
+  min-height: calc(100vh - 16px) ;
+
 }
 button:disabled{
   opacity: 0.6;
@@ -158,10 +163,18 @@ button {
 .recording-panel{
   display: none;
 }
+.recordings-top-section{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px;
+  
+}
 .recordings-wrapper{
   display: grid;
   grid-template-columns: repeat(4, minmax( 200px, 1fr ) );
   gap: 16px;
+  margin-bottom: 48px;
 }
 .recording-card{
   background-color: hsla(var(--bg-hue), 6%, 14%, 0.836);
@@ -173,7 +186,7 @@ button {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  justify-items: flex-start;
+  justify-items: start;
   position: relative; 
 }
 .uploading{
@@ -195,6 +208,10 @@ button {
   display: flex;
   place-content: center;
   place-items: center;
+}
+.recording-card-icon>svg{
+  height: 32px;
+  width: 32px;
 }
 .icon-overlay{
   border-radius: 100%;
@@ -226,23 +243,23 @@ button {
   justify-items: flex-start;
   align-content: stretch;
   justify-content: space-evenly;
+  min-width: 0;
 }
-.recording-card-content .title{
-  
+.recording-card-content>.title{
   font-size: 12pt;
   font-weight: 600;
-  align-self: stretch;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-
 }
-.recording-card-content .title:first-child{
+.recording-card-content>.title>:first-child{
+  flex: 1 1 auto;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  flex-wrap: nowrap;
+  overflow-x: hidden;
+  margin-right: 4px;
 }
-.recording-card-content>.second-row{
+.recording-card-content>*.second-row{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -359,6 +376,7 @@ button {
   align-items: center;
 }
 .recording-room-wrapper{
+  z-index: 10;
   position: fixed;
   top: 0;
   left: 0;
@@ -806,7 +824,7 @@ visibility: visible;
 }
 .error{
   color: red;
-  
+  margin: 8px;
 }
 .border-rd-12{
   border-radius: 12px;
@@ -828,6 +846,18 @@ visibility: visible;
   opacity:1;
   transition: transform 0.3s ease-out, opacity 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) ;
 
+}
+.app-footer{
+    align-self: center;
+    display: flex;
+    bottom: 16px;
+    position: absolute;
+    flex-direction: column;
+    align-items: center;
+    justify-self: flex-end;
+    margin: auto;
+    opacity: 0.5;
+    font-style: italic;
 }
 
 @media only screen and (max-width: 1200px) and (min-width: 767px) {

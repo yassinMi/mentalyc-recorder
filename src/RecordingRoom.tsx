@@ -45,7 +45,7 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
     function animateAudioVolume(t:number){
 
         if(audioLevelRef.current){
-            console.log(`animateAudioVolume ${recordingStatus}`)
+            //console.log(`animateAudioVolume ${recordingStatus}`)
 
             if(isRecording()){
 
@@ -129,6 +129,7 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
                 setRecordingType(prev ? RecordingType.audio : RecordingType.audioAndVideo); return !prev 
             })
     }
+
     function hndlTogglePauseClick() {
         console.log("hndlTogglePauseClick")
         setIsRecordingPaused(prev => {
@@ -141,8 +142,12 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
                 return false
             }
             else {
-                if (!rh.isPaused && !rh.isPausing)
+                if (!(rh.isPaused || rh.isPausing)){
                     rh.PauseRecording();
+                }
+                    else{
+                        console.log(`already paused: ${rh.isPaused } ${rh.isPausing}`)
+                    }
                 setRecordingStatus(RecordingRomStatus.recordingPaused);
                 return true
 
@@ -195,6 +200,7 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
             status:RecordingItemStatus.uploading,
             timestamp:Date.now(),
             title:recordingTitle,
+            type:recordingType
         },recording)
         clearRecordingState();
         
@@ -223,6 +229,7 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
     }
     function hndlEditClick() {
 
+        window.alert("this feature is not implemented yet")
     }
     function hndlStartEndRecordingClick() {
 
