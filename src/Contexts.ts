@@ -37,6 +37,7 @@ export type RecordingContextType = {
     isChangingRecordingType:boolean
     initErrorString?:string
     isDirty:boolean
+    setIsUploading:React.Dispatch<React.SetStateAction<boolean>>
 
 }
 export const RecordingContext = createContext<RecordingContextType>({
@@ -54,4 +55,5 @@ export const RecordingContext = createContext<RecordingContextType>({
     setMediaStream:()=>{},
     isChangingRecordingType:false,
     isDirty:false,
+    setIsUploading:()=>{},
 })

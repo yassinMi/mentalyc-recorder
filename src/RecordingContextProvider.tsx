@@ -16,6 +16,7 @@ export const RecordingContextProvider:React.FC<RecordingContextProvider_Props> =
   const [mediaStream, setMediaStream] = useState<MediaStream|undefined>(undefined)
   const [initErrorString, setInitErrorString] = useState<string|undefined>(undefined)
   const [isDirty, setIsDirty] = useState(false)//used to decied whether to close the modal or minimize it (a dirty state has user satte that shouldn't be lost e.g session title or an ongoing recording operation)
+  const [isUploading, setIsUploading] = useState(false)//used as part of isDirty
 
   const [isChangingRecordingType,setIsChangingRecordingType] = useState(false)
   const [isInitializing,setIsInitializing] = useState(false)
@@ -92,19 +93,20 @@ export const RecordingContextProvider:React.FC<RecordingContextProvider_Props> =
   },[recordingStatus])
   useEffect(()=>{
 
-    setIsDirty(()=>{
-      if(recording!=null) return true;
-      if(recordingStatus==RecordingRomStatus.recording) return true
-      if(recordingStatus==RecordingRomStatus.recordingAvailable) return true
-      if(recordingStatus==RecordingRomStatus.recordingPaused) return true
-      return false;
+    setIsDirty((prev)=>{
+      var dirty = 
+      (recording!=null) ||isUploading
+      ||(recordingStatus==RecordingRomStatus.recording)
+      ||(recordingStatus==RecordingRomStatus.recordingAvailable)
+      ||(recordingStatus==RecordingRomStatus.recordingPaused) 
+      return dirty
     })
-  },[recordingTitle,recordingStatus,recording])
+  },[recordingTitle,recordingStatus,recording,isUploading,isUploading])
  
  
 
   return (
-    <RecordingContext.Provider value={{recordingDuration:recordingDuration,setRecordingDuration:setRecordingDuration, recordingStatus:recordingStatus,setRecordingStatus:setRecordingStatus, recordingTitle:recordingTitle,setRecordingTitle:setRecordingTitle, recordingType:recordingType,setRecordingType:setRecordingType,recordingHelper:recordingHelper,recording:recording,setRecording:setRecording,mediaStream:mediaStream,setMediaStream:setMediaStream,isChangingRecordingType:isChangingRecordingType,initErrorString:initErrorString,isDirty:isDirty}} >
+    <RecordingContext.Provider value={{recordingDuration:recordingDuration,setRecordingDuration:setRecordingDuration, recordingStatus:recordingStatus,setRecordingStatus:setRecordingStatus, recordingTitle:recordingTitle,setRecordingTitle:setRecordingTitle, recordingType:recordingType,setRecordingType:setRecordingType,recordingHelper:recordingHelper,recording:recording,setRecording:setRecording,mediaStream:mediaStream,setMediaStream:setMediaStream,isChangingRecordingType:isChangingRecordingType,initErrorString:initErrorString,isDirty:isDirty,setIsUploading:setIsUploading}} >
      {children}
     </RecordingContext.Provider>
   )

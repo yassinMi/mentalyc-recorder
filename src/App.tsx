@@ -27,7 +27,7 @@ function App() {
   const CurrentApiService = ExpressApiService.getInstance() as IApiService //recording sent to the server, which notitifies the front end using websockets (this requires the server app)
 
 
-  const { setRecordingStatus, recordingHelper, isDirty } = useContext(RecordingContext);
+  const { setRecordingStatus, recordingHelper, isDirty,setIsUploading } = useContext(RecordingContext);
 
   function onRecordingSubmitRequested(recording: Recording, recordingData: RecordingM) {
 
@@ -45,6 +45,8 @@ function App() {
           status: prog.status == "done" ? RecordingItemStatus.done : prog.status == "processing" ? RecordingItemStatus.processing : prog.status == "uploading" ? RecordingItemStatus.uploading : old.status,
           uploadProgress: prog.uploadingProgress
         };
+
+
         return updatedList
 
       })
@@ -59,6 +61,11 @@ function App() {
 
   }
 
+  useEffect(()=>{
+
+    setIsUploading(prev=>recordingsList&&recordingsList.some(r=>r.status==RecordingItemStatus.uploading))
+    
+  },[recordingsList])
 
   useEffect(() => {
 
