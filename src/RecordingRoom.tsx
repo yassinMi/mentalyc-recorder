@@ -75,10 +75,8 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
 
 
     useEffect(()=>{
-        console.log("RecordingRoom useeefect")
 
         setIsFadeIn(true)
-        console.log("RecordingRoom useeefec endt")
         
         if(recordingStatus==RecordingRomStatus.zero){
             setRecordingStatus(RecordingRomStatus.init)
@@ -123,11 +121,9 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
     }
     function hndlToggleCameraClick() {
         if (canChangeRecordingType() == false) return;
-        setIsCameraOn(prev => 
-            { 
-                if(isChangingRecordingType) return prev;//toggling camera on takes time to complete and we don't allow toggling the button in between, to avoid inconsistent toggle state
-                setRecordingType(prev ? RecordingType.audio : RecordingType.audioAndVideo); return !prev 
-            })
+        if(isChangingRecordingType) return;
+        setRecordingType(isCameraOn ? RecordingType.audio : RecordingType.audioAndVideo);
+        setIsCameraOn(!isCameraOn)
     }
 
     function hndlTogglePauseClick() {
@@ -156,18 +152,11 @@ export const RecordingRoom: React.FC<RecordingRoom_Props> = ({ minimizeCb,onReco
         })
     }
     function hndlStartRecordingClick() {
-        console.log("hndlStartRecordingClick")
-        setIsStartingRecording((prev) => {
-            if (recordingStatus == RecordingRomStatus.ready) {
-
-                rh.StartRecording(recordingType)
-                setRecordingStatus(RecordingRomStatus.recording)
-                return true;
-            }
-            else {
-                return prev;
-            }
-        })
+        if (recordingStatus == RecordingRomStatus.ready) {
+            rh.StartRecording(recordingType)
+            setRecordingStatus(RecordingRomStatus.recording)//causes error
+            setIsStartingRecording(true) ;
+        }
     }
     function hndlEndRecordingClick() {
         console.log("hndlEndRecordingClick")
