@@ -92,7 +92,7 @@ function App() {
 
     //# initializing the api sqervice
     const initApi = async ()=>{
-      if(isInitializingApiService) return;
+      if(isInitializingApiService||isLoadingRecordsList) return;//delaying socket handshake until after the records have been fetched(workaround issue#1)
       setIsInitializingApiService(true)
       try {
         await CurrentApiService.init();
